@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model Menu {
+  id         String       @id @default(uuid())
+  name       String       @unique
+  reply      String       
+  isDefault  Boolean      @default(false)
+  tags       String[]     @default([])
+  isActive   Boolean      @default(true)
+  options    Option[]
+  createdAt DateTime     @default(now())
+  @@map("menus")
+}
+
+model Option {
+  id         String       @id @default(uuid())
+  menu_id    String
+  menu       Menu         @relation(fields: [menu_id], references: [id], onDelete: Cascade)
+  label      String
+  trigger    String
+  reply      String 
+  createdAt DateTime     @default(now())
+  
+
+  @@map("options")
+}
+
+model Lead {
+  id         String    @id @default(uuid())
+  name       String?    
+  jid      String    @unique
+  createdAt  DateTime  @default(now())
+  @@map("leads")
+}
+
+
+
+
