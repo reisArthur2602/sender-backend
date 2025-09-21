@@ -3,7 +3,7 @@ version: "3.9"
 services:
   db:
     image: postgres:latest
-    container_name:  db_postgres
+    container_name: db_postgres
     restart: always
     volumes:
       - ./.docker/dbdata:/var/lib/postgresql/data

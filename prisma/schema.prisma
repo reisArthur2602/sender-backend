@@ -11,11 +11,10 @@ datasource db {
 model Menu {
   id         String       @id @default(uuid())
   name       String       @unique
-  reply      String       
+  reply      String       @db.Text
   isDefault  Boolean      @default(false)
   tags       String[]     @default([])
-  isActive   Boolean      @default(true)
-  options    Option[]
+  options    Option[]    
   createdAt DateTime     @default(now())
   @@map("menus")
 }
@@ -24,9 +23,8 @@ model Option {
   id         String       @id @default(uuid())
   menu_id    String
   menu       Menu         @relation(fields: [menu_id], references: [id], onDelete: Cascade)
-  label      String
-  trigger    String
-  reply      String 
+  trigger    Int
+  reply      String @db.Text
   createdAt DateTime     @default(now())
   
 
