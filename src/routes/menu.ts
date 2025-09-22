@@ -2,8 +2,9 @@ import { Router } from "express";
 import { createMenu } from "../functions/menu/create.js";
 import { createMenuSchema } from "../zod/menu/create-menu-schema.js";
 import { getMenus } from "../functions/menu/get.js";
-import { deleteMenuSchema } from "../zod/menu/delete-menu-schema.js";
 import { deleteMenu } from "../functions/menu/delete.js";
+import { updateMenu } from "../functions/menu/update.js";
+import { updateMenuSchema } from "../zod/menu/update-menu-schema.js";
 
 const menuRoutes = Router();
 
@@ -15,12 +16,21 @@ menuRoutes.post("/create", async (req, res) => {
 
 menuRoutes.get("/", async (req, res) => {
   const menus = await getMenus();
-  return res.status(200).json({ menus });
+  return res.status(200).json(menus);
 });
 
 menuRoutes.delete("/:menuId", async (req, res) => {
-  const data = deleteMenuSchema.parse(req.params);
-  await deleteMenu(data.menuId);
+  const { menuId } = req.params;
+  await deleteMenu(menuId);
+  return res.sendStatus(204);
+});
+
+menuRoutes.put("/:menuId", async (req, res) => {
+  const { menuId } = req.params;
+
+  const data = updateMenuSchema.parse(req.body);
+
+  await updateMenu({ ...data, id: menuId });
   return res.sendStatus(204);
 });
 

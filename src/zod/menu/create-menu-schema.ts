@@ -7,7 +7,7 @@ export const createMenuSchema = z4.object({
   options: z4
     .array(
       z4.object({
-        trigger: z4.string(),
+        trigger: z4.number(),
         reply: z4.string(),
       })
     )

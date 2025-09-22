@@ -16,21 +16,17 @@ export const createMenu = async ({
 
   if (existsMenu) throw new ConflictError("O nome do menu já está em uso");
 
-  const data: any = {
-    name,
-    reply,
-    tags,
-  };
-  
-  if (options && options.length > 0)
-    data.options = {
-      create: options.map((option) => ({
-        reply: option.reply,
-        trigger: option.trigger,
-      })),
-    };
-
   await prisma.menu.create({
-    data,
+    data: {
+      name,
+      reply,
+      tags,
+      options: {
+        create: options?.map((option) => ({
+          reply: option.reply,
+          trigger: option.trigger,
+        })),
+      },
+    },
   });
 };
