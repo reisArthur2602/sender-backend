@@ -1,10 +1,18 @@
-import { makeWASocket, useMultiFileAuthState } from "@whiskeysockets/baileys";
-
+import {
+  DisconnectReason,
+  makeWASocket,
+  useMultiFileAuthState,
+} from "@whiskeysockets/baileys";
 import { ensurePath } from "./helpers/ensure-path.js";
 import { processMessage } from "./process-message.js";
-
-import { processConnection } from "./process-connection.js";
 import { normalizeMessage } from "./helpers/normalize-message.js";
+import qrCodeTerminal from "qrcode-terminal";
+import fs from "fs";
+
+import { socket } from "../http/server.js";
+import type { Boom } from "@hapi/boom";
+
+type Status = "connecting" | "connected" | "pending";
 
 export const baileysServerInit = async (instanceId: string) => {
   const path = ensurePath(instanceId);
@@ -12,10 +20,46 @@ export const baileysServerInit = async (instanceId: string) => {
   const { state, saveCreds } = await useMultiFileAuthState(path);
   const sockWA = makeWASocket({ auth: state });
 
+  let status: Status = "pending";
+  let qrCode: string | null = null;
+
   sockWA.ev.on(
     "connection.update",
     async ({ connection, lastDisconnect, qr }) => {
-      await processConnection({ connection, lastDisconnect, qr, instanceId });
+      const path = ensurePath(instanceId);
+
+      if (qr) {
+        qrCodeTerminal.generate(qr, { small: true });
+        status = "pending";
+        qrCode = qr;
+      }
+
+      switch (connection) {
+        case "connecting": {
+          status = "connecting";
+
+          break;
+        }
+
+        case "open": {
+          status = "connected";
+
+          break;
+        }
+
+        case "close": {
+          const reason = (lastDisconnect?.error as Boom)?.output?.statusCode;
+
+          if (reason === DisconnectReason.loggedOut)
+            fs.rmSync(path, { recursive: true, force: true });
+
+          await baileysServerInit(instanceId);
+
+          break;
+        }
+      }
+
+      socket.emit("connection.status", { status, qr: qrCode });
     }
   );
 
@@ -37,4 +81,13 @@ export const baileysServerInit = async (instanceId: string) => {
   });
 
   sockWA.ev.on("creds.update", saveCreds);
+
+  socket.on("connection", (client) => {
+    client.emit("connection.status", { status, qr: qrCode });
+
+    client.on("session.disconnect", async () => {
+      fs.rmSync(path, { recursive: true, force: true });
+      await baileysServerInit(instanceId);
+    });
+  });
 };
