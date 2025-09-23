@@ -9,13 +9,14 @@ datasource db {
 
 
 model Menu {
-  id         String       @id @default(uuid())
-  name       String       @unique
-  reply      String       @db.Text
-  isDefault  Boolean      @default(false)
-  tags       String[]     @default([])
-  options    Option[]    
-  createdAt DateTime     @default(now())
+  id         String    @id @default(uuid())
+  name       String    @unique
+  reply      String    @db.Text
+  isDefault  Boolean   @default(false)
+  tags       String[]  @default([])
+  options    Option[]
+  createdAt  DateTime  @default(now())
+
   @@map("menus")
 }
 
@@ -34,9 +35,27 @@ model Lead {
   id         String    @id @default(uuid())
   name       String?    
   jid      String    @unique
+  messages  Message[]
   createdAt  DateTime  @default(now())
   @@map("leads")
 }
+
+enum MessageFrom {
+  CUSTOMER
+  SYSTEM
+}
+
+model Message {
+  id         String       @id @default(uuid())
+  from       MessageFrom
+  text       String       @db.Text
+  jid        String
+  lead       Lead?        @relation(fields: [jid], references: [jid], onDelete: Cascade)
+  createdAt  DateTime     @default(now())
+
+  @@map("messages")
+}
+
 
 
 

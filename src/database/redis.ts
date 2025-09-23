@@ -9,7 +9,7 @@ const saveCache = async (key: string, value: any) => {
   await redisClient.set(key, JSON.stringify(value));
 };
 const saveListCache = async (key: string, value: any) => {
-  await redisClient.rpush(key, JSON.stringify(value));
+  await redisClient.rpush(`list:${key}`, JSON.stringify(value));
 };
 const invalidadeCache = async (key: string) => {
   await redisClient.del(key);
@@ -23,12 +23,10 @@ const recoverCache = async <T>(key: string): Promise<T | null> => {
 };
 
 const recoverListCache = async <T>(key: string): Promise<T[] | []> => {
-  const result = await redisClient.lrange(key, 0, -1);
+  const result = await redisClient.lrange(`list:${key}`, 0, -1);
   if (result.length === 0) return [];
 
-  const data = result.map((r) => JSON.parse(r) as T);
-
-  return data;
+  return result.map((r) => JSON.parse(r) as T);
 };
 
 export {

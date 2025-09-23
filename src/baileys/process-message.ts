@@ -2,6 +2,7 @@ import type { WASocket } from "@whiskeysockets/baileys";
 import { getMenus } from "../functions/menu/get.js";
 import { ensureLead } from "./helpers/ensure-lead.js";
 import { saveCache } from "../database/redis.js";
+import { saveMessage } from "./helpers/save-message.js";
 
 type Props = {
   message: {
@@ -21,6 +22,12 @@ export const processMessage = async ({
     name: senderName,
   });
 
+  await saveMessage({
+    from: "CUSTOMER",
+    jid,
+    text,
+  });
+
   switch (currentLead.state) {
     case "idle": {
       const menus = await getMenus();
@@ -28,12 +35,13 @@ export const processMessage = async ({
       const menuFound = menus.find((menu) =>
         menu.tags.some((tag) => text.includes(tag))
       );
+
       if (!menuFound) break;
 
       const messageReply = `${menuFound.reply}\n\n${
         menuFound.options.length > 0
           ? menuFound.options
-              .map((option) => `${option.trigger} - ${option.reply}`)
+              .map((option) => `${option.trigger} - ${option.label}`)
               .join("\n")
           : ""
       }`;
@@ -44,6 +52,12 @@ export const processMessage = async ({
         ...currentLead,
         state: "await_option",
         selectedMenu: menuFound,
+      });
+
+      await saveMessage({
+        from: "SYSTEM",
+        jid,
+        text: messageReply,
       });
 
       break;
@@ -74,6 +88,12 @@ export const processMessage = async ({
         ...currentLead,
         state: "idle",
         selectedMenu: null,
+      });
+
+      await saveMessage({
+        from: "SYSTEM",
+        jid,
+        text: optionFound?.reply as string,
       });
 
       break;
