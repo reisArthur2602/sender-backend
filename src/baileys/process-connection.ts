@@ -6,7 +6,7 @@ import {
 import fs from "fs";
 import qrCodeTerminal from "qrcode-terminal";
 import { baileysServerInit } from "./index.js";
-import { ensurePath } from "./ensure-path.js";
+import { ensurePath } from "./helpers/ensure-path.js";
 
 type Connection = WAConnectionState | undefined;
 

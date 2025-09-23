@@ -23,11 +23,10 @@ model Option {
   id         String       @id @default(uuid())
   menu_id    String
   menu       Menu         @relation(fields: [menu_id], references: [id], onDelete: Cascade)
+  label      String @db.Text
   trigger    Int
   reply      String @db.Text
   createdAt DateTime     @default(now())
-  
-
   @@map("options")
 }
 

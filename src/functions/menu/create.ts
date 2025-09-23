@@ -23,6 +23,7 @@ export const createMenu = async ({
       tags,
       options: {
         create: options?.map((option) => ({
+          label:option.label,
           reply: option.reply,
           trigger: option.trigger,
         })),
