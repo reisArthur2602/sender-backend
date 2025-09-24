@@ -1,4 +1,5 @@
 import prisma from "../../database/prisma.js";
+import { invalidadeCache } from "../../database/redis.js";
 import { NotFoundError } from "../../utils/errors-handlers.js";
 
 export const deleteMenu = async (menuId: string) => {
@@ -12,4 +13,6 @@ export const deleteMenu = async (menuId: string) => {
   await prisma.menu.delete({
     where: { id: menuId },
   });
+
+  await invalidadeCache("menus");
 };

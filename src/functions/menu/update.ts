@@ -1,4 +1,5 @@
 import prisma from "../../database/prisma.js";
+import { invalidadeCache } from "../../database/redis.js";
 import { NotFoundError } from "../../utils/errors-handlers.js";
 import type { UpdateMenuInput } from "../../zod/menu/update-menu-schema.js";
 
@@ -26,7 +27,7 @@ export const updateMenu = async ({
     throw new NotFoundError("Este nome já está associado a outro menu");
   }
 
-  return prisma.menu.update({
+  await prisma.menu.update({
     where: { id },
     data: {
       name,
@@ -37,16 +38,20 @@ export const updateMenu = async ({
             upsert: options.map((opt) => ({
               where: { id: opt.id ?? "" },
               update: {
-                reply: opt.reply,
-                trigger: opt.trigger,
+                label: opt.label ?? "",
+                reply: opt.reply ?? "",
+                trigger: opt.trigger ?? 0,
               },
               create: {
-                reply: opt.reply,
-                trigger: opt.trigger,
+                label: opt.label ?? "",
+                reply: opt.reply ?? "",
+                trigger: opt.trigger ?? 0,
               },
             })),
           }
         : undefined,
     },
   });
+
+  await invalidadeCache("menus");
 };

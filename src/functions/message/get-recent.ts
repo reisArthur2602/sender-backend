@@ -5,7 +5,7 @@ export const getRecentMessages = async () => {
     where: {
       from: "CUSTOMER",
     },
-   
+
     distinct: ["jid"],
     take: 4,
 
