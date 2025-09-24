@@ -15,9 +15,20 @@ model Menu {
   isDefault  Boolean   @default(false)
   tags       String[]  @default([])
   options    Option[]
+  matches    Match[]  
   createdAt  DateTime  @default(now())
 
   @@map("menus")
+}
+model Match {
+  id         String   @id @default(uuid())
+ leadJid    String
+  menuId     String  
+  createdAt  DateTime @default(now())
+  lead       Lead     @relation(fields: [ leadJid ], references: [jid], onDelete: Cascade)
+  menu       Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  @@map("matches")
 }
 
 model Option {
@@ -33,12 +44,15 @@ model Option {
 
 model Lead {
   id         String    @id @default(uuid())
-  name       String?    
-  jid      String    @unique
-  messages  Message[]
+  name       String?
+  jid        String    @unique
+  messages   Message[]
+  matches    Match[]   
   createdAt  DateTime  @default(now())
+
   @@map("leads")
 }
+
 
 enum MessageFrom {
   CUSTOMER

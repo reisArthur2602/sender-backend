@@ -6,6 +6,7 @@ import { saveMessage } from "./helpers/save-message.js";
 import uuid4 from "uuid4";
 
 import { notify } from "../utils/notify.js";
+import { createMatch } from "../functions/match/create.js";
 
 type Props = {
   message: {
@@ -46,7 +47,7 @@ export const processMessage = async ({
         title: "Nova mensagem recebida",
         description: `Nova mensagem de ${senderName}`,
       });
-      
+
       const messageReply = `${menuFound.reply}\n\n${
         menuFound.options.length > 0
           ? menuFound.options
@@ -67,6 +68,11 @@ export const processMessage = async ({
         from: "SYSTEM",
         jid,
         text: messageReply,
+      });
+
+      await createMatch({
+        leadJid: currentLead.jid,
+        menuId: menuFound.id,
       });
 
       break;
