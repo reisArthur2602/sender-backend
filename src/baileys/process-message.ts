@@ -3,6 +3,9 @@ import { getMenus } from "../functions/menu/get.js";
 import { ensureLead } from "./helpers/ensure-lead.js";
 import { saveCache } from "../database/redis.js";
 import { saveMessage } from "./helpers/save-message.js";
+import uuid4 from "uuid4";
+
+import { notify } from "../utils/notify.js";
 
 type Props = {
   message: {
@@ -38,6 +41,12 @@ export const processMessage = async ({
 
       if (!menuFound) break;
 
+      notify("new_notification", {
+        id: uuid4(),
+        title: "Nova mensagem recebida",
+        description: `Nova mensagem de ${senderName}`,
+      });
+      
       const messageReply = `${menuFound.reply}\n\n${
         menuFound.options.length > 0
           ? menuFound.options

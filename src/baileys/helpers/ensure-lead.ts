@@ -1,5 +1,7 @@
 import { recoverCache, saveCache } from "../../database/redis.js";
 import { createLead } from "../../functions/lead/create.js";
+import { notify } from "../../utils/notify.js";
+import uuid4 from "uuid4";
 
 type State = "idle" | "await_option";
 
@@ -45,6 +47,12 @@ export const ensureLead = async ({ jid, name }: Props) => {
   };
 
   await saveCache(`lead:${createdLead.jid}`, currentLead);
+
+  notify("new_notification", {
+    id: uuid4(),
+    title: "Novo contato adicionado",
+    description: `${name} foi salvo na lista de contatos.`,
+  });
 
   return currentLead;
 };
