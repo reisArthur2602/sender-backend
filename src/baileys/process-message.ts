@@ -36,17 +36,22 @@ export const processMessage = async ({
     case "idle": {
       const menus = await getMenus();
 
-      const menuFound = menus.find((menu) =>
+      let menuFound = menus.find((menu) =>
         menu.tags.some((tag) => text.includes(tag))
       );
 
-      if (!menuFound) break;
+      if (!menuFound) {
+        menuFound = menus.find((menu) => menu.isDefault === true);
+      }
 
-      notify("new_notification", {
-        id: uuid4(),
-        title: "Nova mensagem recebida",
-        description: `Nova mensagem de ${senderName}`,
-      });
+      if (!menuFound) {
+        notify("new_notification", {
+          id: uuid4(),
+          title: "Nova mensagem recebida",
+          description: `Nova mensagem de ${senderName}`,
+        });
+        break;
+      }
 
       const messageReply = `${menuFound.reply}\n\n${
         menuFound.options.length > 0

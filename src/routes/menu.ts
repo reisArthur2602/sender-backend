@@ -5,6 +5,7 @@ import { getMenus } from "../functions/menu/get.js";
 import { deleteMenu } from "../functions/menu/delete.js";
 import { updateMenu } from "../functions/menu/update.js";
 import { updateMenuSchema } from "../zod/menu/update-menu-schema.js";
+import { updateStatusMenu } from "../functions/menu/update-status.js";
 
 const menuRoutes = Router();
 
@@ -31,6 +32,13 @@ menuRoutes.put("/:menuId", async (req, res) => {
   const data = updateMenuSchema.parse(req.body);
 
   await updateMenu({ ...data, id: menuId });
+  return res.sendStatus(204);
+});
+
+menuRoutes.patch("/status/:menuId", async (req, res) => {
+  const { menuId } = req.params;
+
+  await updateStatusMenu(menuId);
   return res.sendStatus(204);
 });
 
