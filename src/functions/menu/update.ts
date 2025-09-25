@@ -38,9 +38,9 @@ export const updateMenu = async ({
             upsert: options.map((opt) => ({
               where: { id: opt.id ?? "" },
               update: {
-                label: opt.label ?? "",
-                reply: opt.reply ?? "",
-                trigger: opt.trigger ?? 0,
+                label: opt.label,
+                reply: opt.reply,
+                trigger: opt.trigger,
               },
               create: {
                 label: opt.label ?? "",

@@ -22,10 +22,11 @@ export const processMessage = async ({
   sockWA,
 }: Props) => {
   const currentLead = await ensureLead({
-    jid: jid,
+    jid,
     name: senderName,
   });
 
+  // salva mensagem recebida
   await saveMessage({
     from: "CUSTOMER",
     jid,
@@ -36,48 +37,61 @@ export const processMessage = async ({
     case "idle": {
       const menus = await getMenus();
 
-      let menuFound = menus.find((menu) =>
+      // tenta achar por tag
+      let menuMatch = menus.find((menu) =>
         menu.tags.some((tag) => text.includes(tag))
       );
 
-      if (!menuFound) {
-        menuFound = menus.find((menu) => menu.isDefault === true);
+      // se não achar, tenta default
+      if (!menuMatch) {
+        menuMatch = menus.find((menu) => menu.isDefault === true);
+        if (!menuMatch) break; // se não tiver nada, para aqui
       }
 
-      if (!menuFound) {
-        notify("new_notification", {
-          id: uuid4(),
-          title: "Nova mensagem recebida",
-          description: `Nova mensagem de ${senderName}`,
+      const menuHasOptions = menuMatch.options.length > 0;
+
+      if (menuHasOptions) {
+        // monta mensagem com opções
+        const messageReply = `${menuMatch.reply}\n\n${menuMatch.options
+          .map((option) => `${option.trigger} - ${option.label}`)
+          .join("\n")}`;
+
+        await sockWA.sendMessage(jid, { text: messageReply });
+
+        // salva estado aguardando escolha
+        await saveCache(`lead:${jid}`, {
+          ...currentLead,
+          state: "await_option",
+          selectedMenu: menuMatch,
         });
-        break;
+
+        await saveMessage({
+          from: "SYSTEM",
+          jid,
+          text: messageReply,
+        });
+      } else {
+        // se não tiver opções, só responde o reply simples
+        await sockWA.sendMessage(jid, { text: menuMatch.reply });
+
+        await saveMessage({
+          from: "SYSTEM",
+          jid,
+          text: menuMatch.reply,
+        });
+
+        // mantém lead como idle (não aguarda opção)
+        await saveCache(`lead:${jid}`, {
+          ...currentLead,
+          state: "idle",
+          selectedMenu: null,
+        });
       }
 
-      const messageReply = `${menuFound.reply}\n\n${
-        menuFound.options.length > 0
-          ? menuFound.options
-              .map((option) => `${option.trigger} - ${option.label}`)
-              .join("\n")
-          : ""
-      }`;
-
-      await sockWA.sendMessage(jid, { text: messageReply });
-
-      await saveCache(`lead:${jid}`, {
-        ...currentLead,
-        state: "await_option",
-        selectedMenu: menuFound,
-      });
-
-      await saveMessage({
-        from: "SYSTEM",
-        jid,
-        text: messageReply,
-      });
-
+      // sempre cria o match (mesmo sem opções)
       await createMatch({
         leadJid: currentLead.jid,
-        menuId: menuFound.id,
+        menuId: menuMatch.id,
       });
 
       break;
@@ -86,7 +100,8 @@ export const processMessage = async ({
     case "await_option": {
       const parsed = parseInt(text);
 
-      if (!parsed) {
+      if (isNaN(parsed)) {
+        // se não for número válido, reseta
         await saveCache(`lead:${jid}`, {
           ...currentLead,
           state: "idle",
@@ -102,18 +117,25 @@ export const processMessage = async ({
 
       if (optionFound) {
         await sockWA.sendMessage(jid, { text: optionFound.reply });
+
+        await saveMessage({
+          from: "SYSTEM",
+          jid,
+          text: optionFound.reply,
+        });
+
+        notify("new_notification", {
+          id: uuid4(),
+          title: "Nova mensagem recebida",
+          description: `Nova mensagem de ${senderName}`,
+        });
       }
 
+      // sempre volta para idle após tentar processar opção
       await saveCache(`lead:${jid}`, {
         ...currentLead,
         state: "idle",
         selectedMenu: null,
-      });
-
-      await saveMessage({
-        from: "SYSTEM",
-        jid,
-        text: optionFound?.reply as string,
       });
 
       break;

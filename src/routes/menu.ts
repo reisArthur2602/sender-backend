@@ -28,9 +28,7 @@ menuRoutes.delete("/:menuId", async (req, res) => {
 
 menuRoutes.put("/:menuId", async (req, res) => {
   const { menuId } = req.params;
-
   const data = updateMenuSchema.parse(req.body);
-
   await updateMenu({ ...data, id: menuId });
   return res.sendStatus(204);
 });

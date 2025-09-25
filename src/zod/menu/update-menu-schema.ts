@@ -22,9 +22,7 @@ export const updateMenuSchema = z4.object({
   options: z4
     .array(
       z4.object({
-        id: z4.string().min(2, {
-          message: "O campo 'id' deve ter no mínimo 2 caracteres",
-        }),
+        id: z4.string().uuid("Formato de uuid inválido").optional(),
         trigger: z4.number().optional(),
         reply: z4
           .string()
