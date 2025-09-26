@@ -8,8 +8,8 @@ services:
     ports:
       - "4242:4242"
     environment:
-      - DATABASE_URL=postgresql://postgres:sender@db:5432/postgres-sender
-      - REDIS_HOST=db_redis
+      - DATABASE_URL=postgresql://postgres:sender@db:5432/api-sender
+      - REDIS_HOST=redis
       - REDIS_PORT=6379
       - PORT=4242
     depends_on:
@@ -17,16 +17,17 @@ services:
       - redis
 
   db:
-    image: postgres:latest
+    image: bitnami/postgresql:latest
     container_name: db_postgres
     restart: always
     volumes:
-      - ./.docker/dbdata:/var/lib/postgresql/data
+      - ./.docker/dbdata:/bitnami/postgresql
     environment:
-      - POSTGRES_PASSWORD=sender
-      - POSTGRES_DB=postgres-sender
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=sender
+      - POSTGRESQL_DATABASE=api-sender
     ports:
-      - "5432:5432"
+      - "5433:5433"
 
   redis:
     image: redis:latest
