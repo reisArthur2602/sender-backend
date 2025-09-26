@@ -1,34 +1,27 @@
 version: "3.9"
-
 services:
-  app:
+  sender-api:
     build: .
     container_name: sender-api
     restart: always
     ports:
       - "4242:4242"
     environment:
-      - DATABASE_URL=postgresql://postgres:sender@db:5432/api-sender
+      - DATABASE_URL=postgresql://postgres:sender@db:5432/postgres_sender
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - PORT=4242
     depends_on:
       - db
       - redis
-
   db:
-    image: bitnami/postgresql:latest
+    image: postgres:latest
     container_name: db_postgres
     restart: always
-    volumes:
-      - ./.docker/dbdata:/bitnami/postgresql
+  
     environment:
-      - POSTGRESQL_USERNAME=postgres
       - POSTGRESQL_PASSWORD=sender
-      - POSTGRESQL_DATABASE=api-sender
-    ports:
-      - "5433:5433"
-
+      - POSTGRESQL_DATABASE=postgres_sender
   redis:
     image: redis:latest
     container_name: db_redis

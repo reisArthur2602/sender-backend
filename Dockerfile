@@ -9,9 +9,8 @@ RUN npm ci
 
 COPY . .
 
-RUN npx prisma generate
-
 RUN npm run build
+RUN npx prisma generate
 
 # runtime stage
 FROM node:20-alpine
@@ -25,5 +24,5 @@ COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/prisma ./prisma
 
 ENV NODE_ENV=production
-EXPOSE 4242
+
 CMD ["npm", "start"]
