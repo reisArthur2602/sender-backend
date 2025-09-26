@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/http/server.ts",
     "build": "tsc",
-    "start": "node dist/shared/http/server.js"
+    "start": "node dist/http/server.js"
   },
   "keywords": [],
   "author": "",

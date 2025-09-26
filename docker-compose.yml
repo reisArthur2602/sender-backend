@@ -1,6 +1,21 @@
 version: "3.9"
 
 services:
+  app:
+    build: .
+    container_name: sender-api
+    restart: always
+    ports:
+      - "4242:4242"
+    environment:
+      - DATABASE_URL=postgresql://postgres:sender@db:5432/postgres-sender
+      - REDIS_HOST=db_redis
+      - REDIS_PORT=6379
+      - PORT=4242
+    depends_on:
+      - db
+      - redis
+
   db:
     image: postgres:latest
     container_name: db_postgres
@@ -9,7 +24,7 @@ services:
       - ./.docker/dbdata:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=sender
-      - POSTGRES_DB=api-sender
+      - POSTGRES_DB=postgres-sender
     ports:
       - "5432:5432"
 

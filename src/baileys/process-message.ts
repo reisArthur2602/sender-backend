@@ -131,7 +131,7 @@ export const processMessage = async ({
         });
       }
 
-      // sempre volta para idle após tentar processar opção
+     
       await saveCache(`lead:${jid}`, {
         ...currentLead,
         state: "idle",
