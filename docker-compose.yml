@@ -1,5 +1,5 @@
 services:
-  app:
+  sender-api:
     build: .
     container_name: api-sender
     restart: unless-stopped
@@ -11,17 +11,13 @@ services:
     depends_on:
       - db
       - redis
-
   db:
     image: bitnami/postgresql
     container_name: db_postgres
     restart: unless-stopped
     environment:
       - POSTGRES_PASSWORD=sender
-      - POSTGRES_DB=postgres-sender
-    ports:
-      - "5432:5432"
-
+      - POSTGRES_DB=sender
   redis:
     image: bitnami/redis
     container_name: db_redis
