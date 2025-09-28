@@ -1,27 +1,21 @@
-version: "3.9"
-
 services:
   app:
     build: .
-    container_name: sender-api
-    restart: always
+    container_name: api-sender
+    restart: unless-stopped
+    entrypoint: ./entrypoint.sh
     ports:
       - "4242:4242"
-    environment:
-      - DATABASE_URL=postgresql://postgres:sender@db:5432/postgres-sender
-      - REDIS_HOST=db_redis
-      - REDIS_PORT=6379
-      - PORT=4242
+    volumes:
+      - .:/app
     depends_on:
       - db
       - redis
 
   db:
-    image: postgres:latest
+    image: bitnami/postgresql
     container_name: db_postgres
-    restart: always
-    volumes:
-      - ./.docker/dbdata:/var/lib/postgresql/data
+    restart: unless-stopped
     environment:
       - POSTGRES_PASSWORD=sender
       - POSTGRES_DB=postgres-sender
@@ -29,8 +23,10 @@ services:
       - "5432:5432"
 
   redis:
-    image: redis:latest
+    image: bitnami/redis
     container_name: db_redis
-    restart: always
+    restart: unless-stopped
+    environment:
+      - ALLOW_EMPTY_PASSWORD=TRUE
     ports:
       - "6379:6379"
