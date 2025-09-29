@@ -10,7 +10,7 @@ const PORT = Number(process.env.PORT) || 3333;
 
 const server = http.createServer(app);
 
-server.listen(PORT, async () => {
+server.listen(PORT, "0.0.0.0", async () => {
   console.log(`👽 Server rodando na Porta:${PORT}`);
   await baileysServerInit();
 });
