@@ -5,14 +5,10 @@ npm-debug.log*
 node_modules/
 *.tsbuildinfo
 .npm
-.docker
+.docker/postgres_data
 .env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
 dist
-auth*
+whatsapp*
 
 
 

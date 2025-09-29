@@ -7,12 +7,23 @@ export const updateStatusMenu = async (menuId: string) => {
 
   if (!menu) throw new NotFoundError("O menu não foi encontrado");
 
-  await prisma.menu.update({
-    where: { id: menuId },
-    data: {
-      isDefault: !menu?.isDefault,
-    },
-  });
+  if (menu.isDefault) {
+    await prisma.menu.update({
+      where: { id: menuId },
+      data: { isDefault: false },
+    });
+  } else {
+    await prisma.$transaction([
+      prisma.menu.updateMany({
+        data: { isDefault: false },
+        where: { isDefault: true },
+      }),
+      prisma.menu.update({
+        where: { id: menuId },
+        data: { isDefault: true },
+      }),
+    ]);
+  }
 
   await invalidadeCache("menus");
 };

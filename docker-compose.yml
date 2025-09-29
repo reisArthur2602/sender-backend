@@ -11,7 +11,6 @@ services:
     depends_on:
       - db
       - redis
-
   db:
     image: bitnami/postgresql
     container_name: db_postgres
@@ -19,8 +18,8 @@ services:
     environment:
       - POSTGRES_PASSWORD=sender
       - POSTGRES_DB=sender
-    ports:
-      - "5432:5432"
+    expose:
+      - "5432"
     volumes:
       - ./.docker/postgres_data:/bitnami/postgresql
   redis:
@@ -29,5 +28,5 @@ services:
     restart: unless-stopped
     environment:
       - ALLOW_EMPTY_PASSWORD=TRUE
-    ports:
-      - "6379:6379"
+    expose:
+      - "6379"
