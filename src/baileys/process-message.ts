@@ -26,7 +26,6 @@ export const processMessage = async ({
     name: senderName,
   });
 
-  // salva mensagem recebida
   await saveMessage({
     from: "CUSTOMER",
     jid,
@@ -37,107 +36,99 @@ export const processMessage = async ({
     case "idle": {
       const menus = await getMenus();
 
-      // tenta achar por tag
       let menuMatch = menus.find((menu) =>
         menu.tags.some((tag) => text.includes(tag))
       );
 
-      // se não achar, tenta default
-      if (!menuMatch) {
-        menuMatch = menus.find((menu) => menu.isDefault === true);
-        if (!menuMatch) break; // se não tiver nada, para aqui
-      }
+      // se não achar tags, verifica primeira interação
+      if (!menuMatch && currentLead.isFirstInteration) {
+        const welcomeMenu = menus.find((menu) => menu.isDefault);
+        if (!welcomeMenu) break;
 
-      const menuHasOptions = menuMatch.options.length > 0;
+        const welcomeMessageReply =
+          welcomeMenu.options.length > 0
+            ? `${welcomeMenu.reply}\n\n${welcomeMenu.options
+                .map((o) => `${o.trigger} - ${o.label}`)
+                .join("\n")}`
+            : welcomeMenu.reply;
 
-      if (menuHasOptions) {
-        // monta mensagem com opções
-        const messageReply = `${menuMatch.reply}\n\n${menuMatch.options
-          .map((option) => `${option.trigger} - ${option.label}`)
-          .join("\n")}`;
+        await sockWA.sendMessage(jid, { text: welcomeMessageReply });
 
-        await sockWA.sendMessage(jid, { text: messageReply });
+        notify("new_notification", {
+          id: uuid4(),
+          title: "Você recebeu uma nova mensagem",
+          description: `Nova mensagem de ${senderName}.`,
+        });
 
-        // salva estado aguardando escolha
+        await saveMessage({ from: "SYSTEM", jid, text: welcomeMessageReply });
+
         await saveCache(`lead:${jid}`, {
           ...currentLead,
-          state: "await_option",
-          selectedMenu: menuMatch,
+          state: welcomeMenu.options.length > 0 ? "await_option" : "idle",
+          menuMatch: welcomeMenu,
+          isFirstInteration: false,
         });
 
-        await saveMessage({
-          from: "SYSTEM",
-          jid,
-          text: messageReply,
-        });
-      } else {
-        // se não tiver opções, só responde o reply simples
-        await sockWA.sendMessage(jid, { text: menuMatch.reply });
-
-        await saveMessage({
-          from: "SYSTEM",
-          jid,
-          text: menuMatch.reply,
-        });
-
-        // mantém lead como idle (não aguarda opção)
-        await saveCache(`lead:${jid}`, {
-          ...currentLead,
-          state: "idle",
-          selectedMenu: null,
-        });
+        await createMatch({ leadJid: currentLead.jid, menuId: welcomeMenu.id });
+        return;
       }
 
-      // sempre cria o match (mesmo sem opções)
-      await createMatch({
-        leadJid: currentLead.jid,
-        menuId: menuMatch.id,
-      });
+      // se achar menu por tag
+      if (menuMatch) {
+        const hasOptions = menuMatch.options.length > 0;
+        const replyMessage = hasOptions
+          ? `${menuMatch.reply}\n\n${menuMatch.options
+              .map((o) => `${o.trigger} - ${o.label}`)
+              .join("\n")}`
+          : menuMatch.reply;
+
+        await sockWA.sendMessage(jid, { text: replyMessage });
+
+        notify("new_notification", {
+          id: uuid4(),
+          title: "Você recebeu uma nova mensagem",
+          description: `Nova mensagem de ${senderName}.`,
+        });
+        
+        await saveMessage({ from: "SYSTEM", jid, text: replyMessage });
+
+        await saveCache(`lead:${jid}`, {
+          ...currentLead,
+          state: hasOptions ? "await_option" : "idle",
+          menuMatch,
+        });
+
+        await createMatch({ leadJid: currentLead.jid, menuId: menuMatch.id });
+        return;
+      }
 
       break;
     }
 
     case "await_option": {
       const parsed = parseInt(text);
-
-      if (isNaN(parsed)) {
-        // se não for número válido, reseta
+      if (!parsed || !currentLead.menuMatch) {
         await saveCache(`lead:${jid}`, {
           ...currentLead,
           state: "idle",
-          selectedMenu: null,
+          menuMatch: null,
         });
-
-        break;
+        return;
       }
 
-      const optionFound = currentLead.selectedMenu?.options.find(
-        (option) => option.trigger === parsed
+      const optionMatch = currentLead.menuMatch.options.find(
+        (o) => o.trigger === parsed
       );
-
-      if (optionFound) {
-        await sockWA.sendMessage(jid, { text: optionFound.reply });
-
-        await saveMessage({
-          from: "SYSTEM",
-          jid,
-          text: optionFound.reply,
-        });
-
-        notify("new_notification", {
-          id: uuid4(),
-          title: "Nova mensagem recebida",
-          description: `Nova mensagem de ${senderName}`,
-        });
+      if (optionMatch) {
+        await sockWA.sendMessage(jid, { text: optionMatch.reply });
+        await saveMessage({ from: "SYSTEM", jid, text: optionMatch.reply });
       }
 
-     
       await saveCache(`lead:${jid}`, {
         ...currentLead,
         state: "idle",
-        selectedMenu: null,
+        menuMatch: null,
       });
-
       break;
     }
   }

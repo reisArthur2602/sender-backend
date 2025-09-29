@@ -3,7 +3,7 @@ services:
     build: .
     container_name: api-sender
     restart: unless-stopped
-    entrypoint: ./entrypoint.sh
+    entrypoint: ./.docker/entrypoint.sh
     ports:
       - "4242:4242"
     volumes:
@@ -11,6 +11,7 @@ services:
     depends_on:
       - db
       - redis
+
   db:
     image: bitnami/postgresql
     container_name: db_postgres
@@ -18,6 +19,10 @@ services:
     environment:
       - POSTGRES_PASSWORD=sender
       - POSTGRES_DB=sender
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./.docker/postgres_data:/bitnami/postgresql
   redis:
     image: bitnami/redis
     container_name: db_redis

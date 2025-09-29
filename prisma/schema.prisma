@@ -1,6 +1,7 @@
+
 generator client {
   provider      = "prisma-client-js"
-    binaryTargets = ["native", "windows", "linux-musl-openssl-3.0.x"]
+  binaryTargets = ["native", "windows", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -8,52 +9,52 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model Menu {
-  id         String    @id @default(uuid())
-  name       String    @unique
-  reply      String    @db.Text
-  isDefault  Boolean   @default(false)
-  tags       String[]  @default([])
-  options    Option[]
-  matches    Match[]  
-  createdAt  DateTime  @default(now())
+  id        String   @id @default(uuid())
+  name      String   @unique
+  reply     String   @db.Text
+  isDefault Boolean  @default(false)
+  tags      String[] @default([])
+  options   Option[]
+  matches   Match[]
+  createdAt DateTime @default(now())
 
   @@map("menus")
 }
+
 model Match {
-  id         String   @id @default(uuid())
- leadJid    String
-  menuId     String  
-  createdAt  DateTime @default(now())
-  lead       Lead     @relation(fields: [ leadJid ], references: [jid], onDelete: Cascade)
-  menu       Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  id        String   @id @default(uuid())
+  leadJid   String
+  menuId    String
+  createdAt DateTime @default(now())
+  lead      Lead     @relation(fields: [leadJid], references: [jid], onDelete: Cascade)
+  menu      Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
 
   @@map("matches")
 }
 
 model Option {
-  id         String       @id @default(uuid())
-  menu_id    String
-  menu       Menu         @relation(fields: [menu_id], references: [id], onDelete: Cascade)
-  label      String @db.Text
-  trigger    Int
-  reply      String @db.Text
-  createdAt DateTime     @default(now())
+  id        String   @id @default(uuid())
+  menu_id   String
+  menu      Menu     @relation(fields: [menu_id], references: [id], onDelete: Cascade)
+  label     String   @db.Text
+  trigger   Int
+  reply     String   @db.Text
+  createdAt DateTime @default(now())
+
   @@map("options")
 }
 
 model Lead {
-  id         String    @id @default(uuid())
-  name       String?
-  jid        String    @unique
-  messages   Message[]
-  matches    Match[]   
-  createdAt  DateTime  @default(now())
+  id        String    @id @default(uuid())
+  name      String?
+  jid       String    @unique
+  messages  Message[]
+  matches   Match[]
+  createdAt DateTime  @default(now())
 
   @@map("leads")
 }
-
 
 enum MessageFrom {
   CUSTOMER
@@ -61,17 +62,72 @@ enum MessageFrom {
 }
 
 model Message {
-  id         String       @id @default(uuid())
-  from       MessageFrom
-  text       String       @db.Text
-  jid        String
-  lead       Lead?        @relation(fields: [jid], references: [jid], onDelete: Cascade)
-  createdAt  DateTime     @default(now())
+  id        String      @id @default(uuid())
+  from      MessageFrom
+  text      String      @db.Text
+  jid       String
+  lead      Lead?       @relation(fields: [jid], references: [jid], onDelete: Cascade)
+  createdAt DateTime    @default(now())
 
   @@map("messages")
 }
 
+model User {
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+  sessions      Session[]
+  accounts      Account[]
 
+  @@unique([email])
+  @@map("user")
+}
 
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([token])
+  @@map("session")
+}
 
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@map("verification")
+}

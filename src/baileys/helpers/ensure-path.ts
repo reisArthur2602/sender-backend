@@ -1,11 +1,10 @@
 import fs from "fs";
 import path from "path";
 
-export const ensurePath = (instanceId: string) => {
-  const instancePath = path.join("./auth", instanceId);
+export const ensurePath = (token: string) => {
+  const tokenPath = path.join("./auth", token);
 
-  if (!fs.existsSync(instancePath))
-    fs.mkdirSync(instancePath, { recursive: true });
+  if (!fs.existsSync(tokenPath)) fs.mkdirSync(tokenPath, { recursive: true });
 
-  return instancePath;
+  return tokenPath;
 };

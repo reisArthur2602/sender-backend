@@ -10,7 +10,7 @@ type Props = {
   jid: string;
 };
 
-type SelectedMenu = {
+export type MenuMatch = {
   id: string;
   name: string;
   reply: string;
@@ -19,6 +19,7 @@ type SelectedMenu = {
   createdAt: Date;
   options: {
     id: string;
+    label: string;
     reply: string;
     trigger: number;
   }[];
@@ -27,7 +28,8 @@ type SelectedMenu = {
 type CurrentLead = {
   name: string;
   jid: string;
-  selectedMenu: SelectedMenu | null;
+  menuMatch: MenuMatch | null;
+  isFirstInteration: boolean;
   state: State;
 };
 
@@ -42,16 +44,17 @@ export const ensureLead = async ({ jid, name }: Props) => {
   currentLead = {
     name,
     jid: createdLead.jid,
-    selectedMenu: null,
+    menuMatch: null,
     state: "idle",
+    isFirstInteration: true,
   };
 
-  await saveCache(`lead:${createdLead.jid}`, currentLead);
+  await saveCache(`lead:${createdLead.jid}`, currentLead, 60 * 60);
 
   notify("new_notification", {
     id: uuid4(),
     title: "Novo contato adicionado",
-    description: `${name} foi salvo na lista de contatos.`,
+    description: `${name} agora está na sua lista de contatos.`,
   });
 
   return currentLead;
