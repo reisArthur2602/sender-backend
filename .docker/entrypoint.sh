@@ -1,4 +1,4 @@
-#!/bin/bash
+
 
 echo "Instalando Depêndencias..."
 npm install
