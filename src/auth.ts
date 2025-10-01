@@ -2,32 +2,28 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from "./database/prisma.js";
 
+const clientId = process.env.GOOGLE_CLIENT_ID! || "";
+const clientSecret = process.env.GOOGLE_CLIENT_SECRET! || "";
+const secret = process.env.BETTER_AUTH_SECRET! || "";
+const redirectURI = `${process.env.BETTER_AUTH_URL!}/callback/google` || "";
+const app = process.env.BETTER_AUTH_URL_APP! || "";
+
+const mode = process.env.NODE_ENV || "development";
+
 export const auth = betterAuth({
-  database: prismaAdapter(prisma, {
-    provider: "postgresql",
-  }),
-  secret: process.env.BETTER_AUTH_SECRET as string,
+    database: prismaAdapter(prisma, {
+        provider: "postgresql",
+    }),
 
-  socialProviders: {
-    google: {
-      display: "popup",
-      clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      redirectURI: `${
-        process.env.BETTER_AUTH_URL as string
-      }/api/auth/callback/google`,
+    secret,
+
+    socialProviders: {
+        google: {
+            clientId,
+            clientSecret,
+            redirectURI,
+        },
     },
-  },
 
-  // databaseHooks: {
-  //   user: {
-  //     create: {
-  //       after: async (user) => {
-  //         await baileysServerInit(user.id);
-  //       },
-  //     },
-  //   },
-  // },
-
-  trustedOrigins: [process.env.BETTER_AUTH_URL_FRONTEND as string],
+    trustedOrigins: [mode === "development" ? "http://localhost:5173" : app],
 });

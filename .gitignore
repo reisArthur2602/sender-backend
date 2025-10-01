@@ -1,14 +1,10 @@
 
-logs
-*.log
-npm-debug.log*
 node_modules/
-*.tsbuildinfo
 .npm
-.docker/postgres_data
+.docker/db
 .env
 dist
-whatsapp*
+auth-info-baileys
 
 
 

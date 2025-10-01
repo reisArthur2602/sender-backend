@@ -12,10 +12,10 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
-  cors({
-    origin: process.env.BETTER_AUTH_URL_FRONTEND as string,
-    credentials: true,
-  })
+    cors({
+        origin: process.env.BETTER_AUTH_URL_FRONTEND as string,
+        credentials: true,
+    })
 );
 
 app.use("/menu", menuRoutes);
