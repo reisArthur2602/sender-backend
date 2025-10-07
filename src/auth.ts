@@ -1,29 +1,28 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from "./database/prisma.js";
-
-const clientId = process.env.GOOGLE_CLIENT_ID! || "";
-const clientSecret = process.env.GOOGLE_CLIENT_SECRET! || "";
-const secret = process.env.BETTER_AUTH_SECRET! || "";
-const redirectURI = `${process.env.BETTER_AUTH_URL!}/callback/google` || "";
-const app = process.env.BETTER_AUTH_URL_APP! || "";
-
-const mode = process.env.NODE_ENV || "development";
+import {
+  BETTER_AUTH_GOOGLE_CLIENT_ID,
+  BETTER_AUTH_GOOGLE_CLIENT_SECRET,
+  BETTER_AUTH_SECRET,
+  BETTER_AUTH_REDIRECT_URI,
+  BETTER_AUTH_APP,
+} from "./utils/constants.js";
 
 export const auth = betterAuth({
-    database: prismaAdapter(prisma, {
-        provider: "postgresql",
-    }),
+  database: prismaAdapter(prisma, {
+    provider: "postgresql",
+  }),
 
-    secret,
+  secret: BETTER_AUTH_SECRET,
 
-    socialProviders: {
-        google: {
-            clientId,
-            clientSecret,
-            redirectURI,
-        },
+  socialProviders: {
+    google: {
+      clientId: BETTER_AUTH_GOOGLE_CLIENT_ID,
+      clientSecret: BETTER_AUTH_GOOGLE_CLIENT_SECRET,
+      redirectURI: BETTER_AUTH_REDIRECT_URI,
     },
+  },
 
-    trustedOrigins: [mode === "development" ? "http://localhost:5173" : app],
+  trustedOrigins: [BETTER_AUTH_APP],
 });

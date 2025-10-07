@@ -41,6 +41,7 @@ export const getMenus = async () => {
 
     orderBy: {
       createdAt: "desc",
+      isDefault: "asc",
     },
   });
 

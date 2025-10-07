@@ -40,16 +40,15 @@ export const processMessage = async ({
         menu.tags.some((tag) => text.includes(tag))
       );
 
-      // se não achar tags, verifica primeira interação
       if (!menuMatch && currentLead.isFirstInteration) {
         const welcomeMenu = menus.find((menu) => menu.isDefault);
         if (!welcomeMenu) break;
 
         const welcomeMessageReply =
           welcomeMenu.options.length > 0
-            ? `${welcomeMenu.reply}\n\n${welcomeMenu.options
-                .map((o) => `${o.trigger} - ${o.label}`)
-                .join("\n")}`
+            ? `${welcomeMenu.reply}\n\n${welcomeMenu.options.map(
+                (o) => `${o.trigger} - ${o.label}\n\n`
+              )}`
             : welcomeMenu.reply;
 
         await sockWA.sendMessage(jid, { text: welcomeMessageReply });
@@ -73,7 +72,6 @@ export const processMessage = async ({
         return;
       }
 
-      // se achar menu por tag
       if (menuMatch) {
         const hasOptions = menuMatch.options.length > 0;
         const replyMessage = hasOptions
@@ -89,7 +87,7 @@ export const processMessage = async ({
           title: "Você recebeu uma nova mensagem",
           description: `Nova mensagem de ${senderName}.`,
         });
-        
+
         await saveMessage({ from: "SYSTEM", jid, text: replyMessage });
 
         await saveCache(`lead:${jid}`, {

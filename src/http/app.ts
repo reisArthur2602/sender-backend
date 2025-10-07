@@ -6,21 +6,17 @@ import { leadRoutes } from "../routes/lead.js";
 import { dashboardRoutes } from "../routes/dashboard.js";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "../auth.js";
-
-const mode = process.env.NODE_ENV || "development";
+import { BETTER_AUTH_APP } from "../utils/constants.js";
 
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
-    cors({
-        origin:
-            mode === "development"
-                ? "http://localhost:5173"
-                : process.env.BETTER_AUTH_URL_APP,
-        credentials: true,
-    })
+  cors({
+    origin: BETTER_AUTH_APP,
+    credentials: true,
+  })
 );
 
 app.use("/menu", menuRoutes);
